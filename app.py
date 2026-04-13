@@ -268,7 +268,7 @@ with st.container():
     st.markdown('<div class="chat-header"><h3>💬 Ask Your Data Questions</h3></div>', unsafe_allow_html=True)
 
     #grok_key = os.getenv("GROK_API_KEY")
-    grok_key = st.secrets("GROK_API_KEY")
+    grok_key = st.secrets["GROK_API_KEY"]
 
     if not grok_key:
         st.warning("⚠️ Chatbot disabled — add your `GROK_API_KEY` to the `.env` file.")
