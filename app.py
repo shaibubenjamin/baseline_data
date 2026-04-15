@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
+import re
 from dotenv import load_dotenv
+from pathlib import Path
 
 # Try importing LangChain for the chatbot capability
 try:
@@ -12,35 +14,29 @@ try:
 except ImportError:
     has_langchain = False
 
-# Load environment variables (for GROK_API_KEY)
-load_dotenv(override=True)
+# Load environment variables
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path, override=True)
 
 st.set_page_config(page_title="Baseline Comparison Dashboard", page_icon="📊", layout="wide")
 
-# ── Premium CSS ──────────────────────────────────────────────────────────────
+# ── Premium CSS ───────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
 
-    html, body, [class*="css"], * {
-        font-family: 'DM Sans', sans-serif !important;
-    }
+    html, body, [class*="css"], * { font-family: 'DM Sans', sans-serif !important; }
 
-    /* ── Page background ── */
-    .stApp {
-        background: #f7f8fc;
-    }
+    .stApp { background: #f7f8fc; }
 
-    /* ── Sidebar-free clean top area (UPDATED WIDTH) ── */
     .block-container {
         padding-top: 2rem !important;
         padding-bottom: 3rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
-        max-width: 100% !important;   /* ✅ FULL WIDTH FIX */
+        max-width: 100% !important;
     }
 
-    /* ── Header banner ── */
     .dashboard-header {
         background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f2d5c 100%);
         border-radius: 20px;
@@ -67,45 +63,25 @@ st.markdown("""
     }
     .title-main {
         font-family: 'Syne', sans-serif !important;
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: #ffffff;
-        letter-spacing: -0.02em;
-        margin: 0 0 6px 0;
-        line-height: 1.1;
+        font-size: 2.8rem; font-weight: 800; color: #ffffff;
+        letter-spacing: -0.02em; margin: 0 0 6px 0; line-height: 1.1;
     }
-    .title-accent {
-        color: #38bdf8;
-    }
+    .title-accent { color: #38bdf8; }
     .subtitle-text {
-        color: #94a3b8;
-        font-size: 1.05rem;
-        font-weight: 400;
-        margin: 0;
-        max-width: 700px;
-        line-height: 1.6;
+        color: #94a3b8; font-size: 1.05rem; font-weight: 400;
+        margin: 0; max-width: 700px; line-height: 1.6;
     }
-    .subtitle-text b {
-        color: #cbd5e1;
-        font-weight: 600;
-    }
+    .subtitle-text b { color: #cbd5e1; font-weight: 600; }
 
-    /* ── Metric cards ── */
     [data-testid="stMetric"] {
-        background: #ffffff;
-        border: 1px solid #e8edf5;
-        padding: 26px 22px 22px;
-        border-radius: 16px;
+        background: #ffffff; border: 1px solid #e8edf5;
+        padding: 26px 22px 22px; border-radius: 16px;
         box-shadow: 0 2px 8px rgba(15,23,42,0.06);
         transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-        position: relative;
-        overflow: hidden;
+        position: relative; overflow: hidden;
     }
     [data-testid="stMetric"]::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
         background: linear-gradient(90deg, #2563eb, #38bdf8);
         border-radius: 16px 16px 0 0;
     }
@@ -114,131 +90,82 @@ st.markdown("""
         box-shadow: 0 12px 28px rgba(37,99,235,0.13);
         border-color: #bfdbfe;
     }
-    [data-testid="stMetricValue"] {
-        color: #0f172a !important;
-        font-weight: 700 !important;
-        font-size: 2rem !important;
-    }
-    [data-testid="stMetricLabel"] {
-        color: #64748b !important;
-        font-size: 0.78rem !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.08em !important;
-    }
+    [data-testid="stMetricValue"] { color: #0f172a !important; font-weight: 700 !important; font-size: 2rem !important; }
+    [data-testid="stMetricLabel"] { color: #64748b !important; font-size: 0.78rem !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; }
 
-    /* ── Section headings ── */
-    h3, .stSubheader {
-        font-family: 'Syne', sans-serif !important;
-        color: #0f172a !important;
-        font-weight: 700 !important;
-    }
+    h3, .stSubheader { font-family: 'Syne', sans-serif !important; color: #0f172a !important; font-weight: 700 !important; }
 
-    /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 4px;
-        background: #eef2f9;
-        border-radius: 12px;
-        padding: 4px;
-        border: none;
+        gap: 4px; background: #eef2f9; border-radius: 12px; padding: 4px; border: none;
     }
     .stTabs [data-baseweb="tab"] {
-        border-radius: 10px;
-        padding: 8px 22px;
-        font-weight: 600;
-        color: #64748b;
-        background: transparent;
-        border: none;
-        transition: all 0.2s ease;
+        border-radius: 10px; padding: 8px 22px; font-weight: 600;
+        color: #64748b; background: transparent; border: none; transition: all 0.2s ease;
     }
     .stTabs [aria-selected="true"] {
-        background: #ffffff !important;
-        color: #2563eb !important;
+        background: #ffffff !important; color: #2563eb !important;
         box-shadow: 0 2px 8px rgba(37,99,235,0.12);
     }
 
-    /* ── Selectbox ── */
-    .stSelectbox label {
-        font-weight: 600;
-        color: #374151;
-    }
+    .stSelectbox label { font-weight: 600; color: #374151; }
 
-    /* ── Divider ── */
-    hr {
-        border: none;
-        border-top: 1px solid #e8edf5;
-        margin: 1.5rem 0;
-    }
+    hr { border: none; border-top: 1px solid #e8edf5; margin: 1.5rem 0; }
 
-    /* ── Chat section ── */
     .chat-header {
         background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-        border: 1px solid #bae6fd;
-        border-radius: 16px;
-        padding: 20px 28px;
-        margin-bottom: 1rem;
+        border: 1px solid #bae6fd; border-radius: 16px;
+        padding: 20px 28px; margin-bottom: 1rem;
     }
-    .chat-header h3 {
-        margin: 0;
-        color: #0369a1 !important;
-        font-size: 1.15rem !important;
-    }
+    .chat-header h3 { margin: 0; color: #0369a1 !important; font-size: 1.15rem !important; }
 
-    /* ── Checkbox toggle (used for dataset section) ── */
-    [data-testid="stCheckbox"] {
-        display: none !important;
-    }
+    [data-testid="stCheckbox"] { display: none !important; }
 
-    /* ── Dataframe ── */
-    [data-testid="stDataFrame"] {
-        border-radius: 10px;
-        overflow: hidden;
-        border: 1px solid #e8edf5;
-    }
+    [data-testid="stDataFrame"] { border-radius: 10px; overflow: hidden; border: 1px solid #e8edf5; }
 
-    /* ── Metric group labels ── */
     .metric-section-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #94a3b8;
-        margin-bottom: 0.5rem;
+        font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ── File paths ───────────────────────────────────────────────────────────────
+# ── File paths ────────────────────────────────────────────────────────────────
 ENUMERATION_FILE = "enumeration_kaduna_bauchi_adamawa_gombe_yobe.csv"
 IE_FILE          = "ie_jigawa_katsina_kebbi_zamfara.csv"
 MDA_FILE         = "mda_round_1.csv"
 WORLD_POP_FILE   = "world_pop_2026.csv"
 
-# ── Color palette (consistent across all charts) ─────────────────────────────
 SOURCE_COLORS = {
     "Enumeration":                 "#636EFA",
     "IE (Identify and Enumerate)": "#00CC96",
-    "MDA Round 1":                 "#FFA15A",
+    "MDA Round":                   "#FFA15A",
     "World Pop":                   "#AD0B7C",
 }
 
+def normalize_lga(s):
+    """Normalize LGA name: uppercase, collapse spaces, unify dashes."""
+    s = str(s).strip().upper()
+    s = re.sub(r'[-\u2013\u2014]+', '-', s)
+    s = re.sub(r'\s+', ' ', s)
+    s = re.sub(r'\s*-\s*', '-', s)
+    return s
+
 def load_data():
-    df_enum = pd.read_csv(ENUMERATION_FILE)
-    df_ie   = pd.read_csv(IE_FILE)
-    df_mda  = pd.read_csv(MDA_FILE)
+    df_enum      = pd.read_csv(ENUMERATION_FILE)
+    df_ie        = pd.read_csv(IE_FILE)
+    df_mda       = pd.read_csv(MDA_FILE)
     df_world_pop = pd.read_csv(WORLD_POP_FILE)
 
-
-    df_enum['source_type'] = 'Enumeration'
-    df_ie['source_type']   = 'IE (Identify and Enumerate)'
-    df_mda['source_type']  = 'MDA Round 1'
-    df_world_pop['source_type']  = 'World Pop'
+    df_enum['source_type']      = 'Enumeration'
+    df_ie['source_type']        = 'IE (Identify and Enumerate)'
+    df_mda['source_type']       = 'MDA Round'
+    df_world_pop['source_type'] = 'World Pop'
 
     for df in [df_enum, df_ie, df_mda, df_world_pop]:
         if 'state' in df.columns:
             df['state'] = df['state'].str.title()
         if 'local_government_area' in df.columns:
-            df['local_government_area'] = df['local_government_area'].str.title()
+            df['local_government_area'] = df['local_government_area'].apply(normalize_lga)
 
     df_combined = pd.concat([df_enum, df_ie, df_mda, df_world_pop], ignore_index=True)
     return df_enum, df_ie, df_mda, df_world_pop, df_combined
@@ -249,29 +176,28 @@ except Exception as e:
     st.error(f"Error loading datasets: {e}")
     st.stop()
 
-
-# ── HEADER ───────────────────────────────────────────────────────────────────
+# ── HEADER ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="dashboard-header">
   <p class="title-main">📊 Baseline <span class="title-accent">Comparison</span> Portal</p>
   <p class="subtitle-text">
     A unified, intelligent view of population targets <b>(1–59 months)</b> across
-    <b>Enumeration</b>, <b>IE (Identify & Enumerate)</b>, <b>MDA Round 1</b>, and <b>World Pop</b> datasets
+    <b>Enumeration</b>, <b>IE (Identify & Enumerate)</b>, <b>MDA Round</b>, and <b>World Pop</b> datasets
     spanning Nigeria's northern states.
   </p>
 </div>
 """, unsafe_allow_html=True)
 
-
-# ── CHATBOT ──────────────────────────────────────────────────────────────────
+# ── CHATBOT ───────────────────────────────────────────────────────────────────
 with st.container():
     st.markdown('<div class="chat-header"><h3>💬 Ask Your Data Questions</h3></div>', unsafe_allow_html=True)
 
     #grok_key = os.getenv("GROK_API_KEY")
     grok_key = st.secrets["GROK_API_KEY"]
 
+    
     if not grok_key:
-        st.warning("⚠️ Chatbot disabled — add your `GROK_API_KEY` to the `.env` file.")
+        st.warning("⚠️ Chatbot disabled — add your GROK_API_KEY to the .env file.")
     elif not has_langchain:
         st.error("LangChain packages not found. Run: `pip install langchain langchain-experimental langchain-openai`")
     else:
@@ -303,7 +229,7 @@ with st.container():
                     handle_parsing_errors=True,
                     prefix=(
                         "You are analyzing four pandas dataframes. "
-                        "df1 is Enumeration data, df2 is IE data, df3 is MDA Round 1, df4 is World Pop. "
+                        "df1 is Enumeration data, df2 is IE data, df3 is MDA Round, df4 is World Pop. "
                         "They share similar columns."
                     ),
                 )
@@ -328,10 +254,8 @@ with st.container():
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-
 # ── KEY METRICS ───────────────────────────────────────────────────────────────
 col1, col2, col3, col4 = st.columns(4)
-
 with col1:
     st.markdown('<p class="metric-section-label">Enumeration</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_enum['state'].nunique())
@@ -339,15 +263,15 @@ with col2:
     st.markdown('<p class="metric-section-label">IE Dataset</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_ie['state'].nunique())
 with col3:
-    st.markdown('<p class="metric-section-label">MDA Round 1</p>', unsafe_allow_html=True)
+    st.markdown('<p class="metric-section-label">Current MDA Round</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_mda['state'].nunique())
 with col4:
     st.markdown('<p class="metric-section-label">World Pop</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_world_pop['state'].nunique())
+
 st.divider()
 
-
-# ── SHARED CHART LAYOUT DEFAULTS ──────────────────────────────────────────────
+# ── CHART LAYOUT DEFAULTS ─────────────────────────────────────────────────────
 CHART_LAYOUT = dict(
     font_family="DM Sans",
     title_font_family="Syne",
@@ -366,13 +290,10 @@ CHART_LAYOUT = dict(
     ),
     margin=dict(t=60, b=50, l=50, r=30),
     hoverlabel=dict(
-        bgcolor="#0f172a",
-        font_color="#f8fafc",
-        font_family="DM Sans",
-        bordercolor="#0f172a",
+        bgcolor="#0f172a", font_color="#f8fafc",
+        font_family="DM Sans", bordercolor="#0f172a",
     ),
 )
-
 
 # ── VISUALIZATIONS ────────────────────────────────────────────────────────────
 st.subheader("📍 Regional Comparison: Population Target (1–59 Months)")
@@ -394,105 +315,279 @@ with tab1:
         color='source_type',
         title="Total 1–59m Targets by State",
         labels={
-            '1_59m':       'Target Population (1–59m)',
-            'state':       'State',
-            'source_type': 'Dataset',
+            '1_59m': 'Target Population (1–59m)',
+            'state': 'State',
+            'source_type': 'Dataset'
         },
         barmode='group',
         color_discrete_map=SOURCE_COLORS,
         hover_data={'1_59m': ':,'},
         template='plotly_white',
     )
-    fig_state.update_layout(**CHART_LAYOUT)
-    fig_state.update_traces(marker_line_width=0, opacity=0.92)
+
+    # ── CORRECT LABELS ──
+    for trace in fig_state.data:
+        trace.text = [f"{v:,.0f}" for v in trace.y]
+        trace.textposition = "inside"
+        trace.textangle = 270
+        trace.insidetextanchor = "middle"
+        trace.textfont = dict(size=11, color="white")
+        trace.opacity = 0.92
+
+        # ✅ correct way to remove bar border
+        trace.marker = dict(line=dict(width=0))
+
+    # ── SAFE LAYOUT ──
+    layout_copy = CHART_LAYOUT.copy()
+    layout_copy.pop("legend", None)
+    layout_copy.pop("margin", None)
+
+    fig_state.update_layout(
+        **layout_copy,
+        legend=dict(
+            title_text="Dataset",
+            orientation="h",
+            x=0.5,
+            xanchor="center",
+            y=1.15,
+            bgcolor="rgba(255,255,255,0.75)",
+            bordercolor="#e8edf5",
+            borderwidth=1,
+        ),
+        margin=dict(t=80, b=50, l=50, r=20),
+    )
+
     st.plotly_chart(fig_state, use_container_width=True)
-
-
 with tab2:
     selected_state = st.selectbox(
         "Select a State to view its LGA breakdown:",
-        sorted(df_combined['state'].unique()),
+        sorted(df_combined['state'].dropna().unique()),
     )
-    lga_data = df_combined[df_combined['state'] == selected_state]
 
-    fig_lga = px.bar(
+    lga_data = df_combined[df_combined['state'] == selected_state].copy()
+
+    # Aggregate first (LGA names already normalized at load time)
+    lga_data = (
+        lga_data
+        .groupby(['local_government_area', 'source_type'], as_index=False)['1_59m']
+        .sum()
+    )
+
+    # Strict alphabetical order — applied uniformly across ALL sources
+    lga_order = sorted(lga_data['local_government_area'].unique())
+
+    lga_data['local_government_area'] = pd.Categorical(
+        lga_data['local_government_area'],
+        categories=lga_order,
+        ordered=True,
+    )
+    lga_data = lga_data.sort_values('local_government_area')
+
+    fig_lga = px.line(
         lga_data,
         x='local_government_area',
         y='1_59m',
-        color='source_type',                  # ← each source gets its own color
-        title=f"LGA Breakdown — {selected_state}",
+        color='source_type',
+        markers=True,
+        title=f"LGA Comparison — {selected_state}",
         labels={
-            '1_59m':                 'Target Population (1–59m)',
+            '1_59m': 'Target Population (1–59m)',
             'local_government_area': 'Local Government Area',
-            'source_type':           'Dataset',
+            'source_type': 'Dataset',
         },
-        barmode='group',
-        color_discrete_map=SOURCE_COLORS,     # ← same consistent palette
-        hover_data={'1_59m': ':,'},
+        color_discrete_map=SOURCE_COLORS,
         template='plotly_white',
+        category_orders={"local_government_area": lga_order},
     )
     fig_lga.update_layout(**CHART_LAYOUT)
-    fig_lga.update_traces(marker_line_width=0, opacity=0.92)
+    fig_lga.update_traces(line_shape="linear", line=dict(width=2.5), marker=dict(size=7))
     st.plotly_chart(fig_lga, use_container_width=True)
 
 st.divider()
 
-
-# ── RAW DATA ──────────────────────────────────────────────────────────────────
+# ── PRETTY FORMATTER ────────────────────────────────────────────────────────
 def prettify_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop source_type, format 1_59m with commas, and clean column headers."""
-    display = df.drop(columns=['source_type'], errors='ignore').copy()
-    # Replace underscores with spaces in column names and title-case them
-    display.columns = [c.replace('_', ' ').title() for c in display.columns]
-    # Format the population column if present
-    pop_col = '1 59M'          # after title-casing '1_59m'
-    if pop_col in display.columns:
-        display[pop_col] = display[pop_col].apply(lambda x: f"{int(x):,}" if pd.notna(x) else x)
+    display = df.copy()
+
+    display.rename(columns={
+        "local_government_area": "LGA",
+        "state": "State"
+    }, inplace=True, errors="ignore")
+
+    # Format numbers with commas
+    for col in display.columns:
+        if col not in ["State", "LGA", "Round"]:
+            display[col] = display[col].apply(
+                lambda x: f"{int(x):,}" if pd.notna(x) and str(x).replace(",", "").isdigit() else x
+            )
+
     return display
 
-# ── Dataset toggle using checkbox (avoids expander rendering bugs) ───────────
+
+# ── CENTER TABLE CSS ─────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+    table th, table td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    thead tr th {
+        font-weight: 700 !important;
+        color: #0f172a !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ── HEADER ───────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="
-    background:#ffffff;
-    border:1px solid #e8edf5;
-    border-radius:14px;
-    padding:0;
-    overflow:hidden;
-    box-shadow:0 2px 8px rgba(15,23,42,0.05);
+    background:#ffffff; border:1px solid #e8edf5; border-radius:14px;
+    padding:16px 22px; font-family:'DM Sans',sans-serif;
+    font-weight:700; color:#0f172a; font-size:1.05rem;
+    box-shadow:0 2px 8px rgba(15,23,42,0.04); margin-bottom:12px;
 ">
-  <div style="
-    padding:16px 22px;
-    font-family:'DM Sans',sans-serif;
-    font-weight:700;
-    font-size:1.05rem;
-    color:#0f172a;
-    border-bottom:1px solid #e8edf5;
-    background:#f8fafc;
-    border-radius:14px 14px 0 0;
-  ">
-    View Datasets
-  </div>
+    View Unified Comparison Table
 </div>
 """, unsafe_allow_html=True)
 
-show_data = st.checkbox("Show / Hide Data Tables", value=True, label_visibility="collapsed")
+
+# ── STATE FILTER ─────────────────────────────────────────────────────────────
+all_states = sorted(df_combined["state"].dropna().unique())
+
+selected_states_tbl = st.multiselect(
+    "Select State(s):",
+    options=all_states,
+    default=[all_states[0]],
+)
+
+
+# ── BUILD TABLE FUNCTION ─────────────────────────────────────────────────────
+def build_comparison_table(df):
+
+    # Aggregate data
+    tmp = (
+        df.groupby(["state", "local_government_area", "source_type"])["1_59m"]
+        .sum()
+        .reset_index()
+    )
+
+    # Pivot datasets
+    pivot = tmp.pivot_table(
+        index=["state", "local_government_area"],
+        columns="source_type",
+        values="1_59m",
+        aggfunc="sum"
+    ).reset_index()
+
+    pivot.rename(columns={
+        "state": "State",
+        "local_government_area": "LGA"
+    }, inplace=True)
+
+    # Ensure dataset columns exist
+    expected_cols = [
+        "Enumeration",
+        "IE (Identify and Enumerate)",
+        "World Pop",
+        "MDA Round"
+    ]
+
+    for col in expected_cols:
+        if col not in pivot.columns:
+            pivot[col] = 0
+
+    # ── MDA ROUND META COLUMN ──
+    if "round" in df.columns:
+        mda_round = (
+            df[df["source_type"] == "MDA Round"]
+            .groupby(["state", "local_government_area"])["round"]
+            .first()
+            .reset_index()
+        )
+
+        pivot = pivot.merge(
+            mda_round,
+            left_on=["State", "LGA"],
+            right_on=["state", "local_government_area"],
+            how="left"
+        )
+
+        pivot.drop(columns=["state", "local_government_area"], inplace=True)
+        pivot.rename(columns={"round": "Round"}, inplace=True)
+    else:
+        pivot["Round"] = "-"
+
+    # Fill numeric values
+    numeric_cols = [
+        "Enumeration",
+        "IE (Identify and Enumerate)",
+        "World Pop",
+        "MDA Round"
+    ]
+
+    pivot[numeric_cols] = pivot[numeric_cols].fillna(0)
+
+    # ── STATE TOTAL ROW ───────────────────────────────────────────────────────
+    state_totals = (
+        pivot.groupby("State")[numeric_cols]
+        .sum()
+        .reset_index()
+    )
+
+    state_totals["LGA"] = "TOTAL"
+    state_totals["Round"] = "-"
+
+    # Combine
+    final_df = pd.concat([pivot, state_totals], ignore_index=True)
+
+    # Column order
+    final_df = final_df[
+        [
+            "State",
+            "LGA",
+            "Enumeration",
+            "IE (Identify and Enumerate)",
+            "World Pop",
+            "MDA Round",
+            "Round"
+        ]
+    ]
+
+    # Sort (TOTAL always last)
+    final_df["is_total"] = final_df["LGA"].eq("TOTAL")
+    final_df = final_df.sort_values(["State", "is_total", "LGA"])
+    final_df.drop(columns=["is_total"], inplace=True)
+
+    return final_df
+
+
+# ── STYLE TOTAL ROW ──────────────────────────────────────────────────────────
+def style_total_row(df):
+    def highlight(row):
+        if row["LGA"] == "TOTAL":
+            return [
+                "background-color: #fff3cd; font-weight: bold; color: #7a5c00;"
+            ] * len(row)
+        return [""] * len(row)
+
+    return df.style.apply(highlight, axis=1)
+
+
+# ── APPLY FILTER ─────────────────────────────────────────────────────────────
+df_filtered = df_combined.copy()
+df_filtered = df_filtered[df_filtered["state"].isin(selected_states_tbl)]
+
+comparison_table = build_comparison_table(df_filtered)
+
+
+# ── DISPLAY TABLE ────────────────────────────────────────────────────────────
+show_data = st.checkbox("Show / Hide Data Table", value=True, label_visibility="collapsed")
 
 if show_data:
-    st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-    col_a, col_b, col_c, col_d = st.columns(4)
-
-    with col_a:
-        st.markdown("#### 🔵 Enumeration")
-        st.dataframe(prettify_df(df_enum), use_container_width=True, hide_index=True)
-
-    with col_b:
-        st.markdown("#### 🟢 IE Dataset")
-        st.dataframe(prettify_df(df_ie), use_container_width=True, hide_index=True)
-
-    with col_c:
-        st.markdown("#### 🟠 MDA Round 1")
-        st.dataframe(prettify_df(df_mda), use_container_width=True, hide_index=True)
-        
-    with col_d:
-        st.markdown("#### 🟣 World Pop")
-        st.dataframe(prettify_df(df_world_pop), use_container_width=True, hide_index=True)
+    st.dataframe(
+        style_total_row(prettify_df(comparison_table)),
+        use_container_width=True,
+        hide_index=True
+    )
