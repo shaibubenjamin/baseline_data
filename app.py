@@ -420,7 +420,11 @@ def prettify_df(df: pd.DataFrame) -> pd.DataFrame:
             display[col] = display[col].apply(
                 lambda x: f"{int(x):,}" if pd.notna(x) and str(x).replace(",", "").isdigit() else x
             )
-
+    
+    # ✅ FORCE STATE TO UPPERCASE
+    if "State" in display.columns:
+        display["State"] = display["State"].astype(str).str.upper()
+        
     # ✅ FIX: Force Round to whole number
     if "Round" in display.columns:
         display["Round"] = display["Round"].apply(
