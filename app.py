@@ -191,7 +191,7 @@ st.markdown("""
 # ── CHATBOT ───────────────────────────────────────────────────────────────────
 with st.container():
     st.markdown('<div class="chat-header"><h3>💬 Ask Your Data Questions</h3></div>', unsafe_allow_html=True)
-
+    
     #grok_key = os.getenv("GROK_API_KEY")
     grok_key = st.secrets["GROK_API_KEY"]
 
@@ -420,6 +420,12 @@ def prettify_df(df: pd.DataFrame) -> pd.DataFrame:
             display[col] = display[col].apply(
                 lambda x: f"{int(x):,}" if pd.notna(x) and str(x).replace(",", "").isdigit() else x
             )
+
+    # ✅ FIX: Force Round to whole number
+    if "Round" in display.columns:
+        display["Round"] = display["Round"].apply(
+            lambda x: int(float(x)) if pd.notna(x) and str(x).replace(".", "").isdigit() else 0
+        )
 
     return display
 
