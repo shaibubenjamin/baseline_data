@@ -134,12 +134,14 @@ ENUMERATION_FILE = "enumeration_kaduna_bauchi_adamawa_gombe_yobe.csv"
 IE_FILE          = "ie_jigawa_katsina_kebbi_zamfara.csv"
 MDA_FILE         = "mda_round_1.csv"
 WORLD_POP_FILE   = "world_pop_2026.csv"
+IMMUNISATION     = "immunisation.csv"
 
 SOURCE_COLORS = {
     "Enumeration":                 "#636EFA",
     "IE (Identify and Enumerate)": "#00CC96",
     "MDA Round":                   "#FFA15A",
     "World Pop":                   "#AD0B7C",
+    "Immunisation":                "#103E18",   # fixed casing
 }
 
 def normalize_lga(s):
@@ -151,27 +153,36 @@ def normalize_lga(s):
     return s
 
 def load_data():
-    df_enum      = pd.read_csv(ENUMERATION_FILE)
-    df_ie        = pd.read_csv(IE_FILE)
-    df_mda       = pd.read_csv(MDA_FILE)
-    df_world_pop = pd.read_csv(WORLD_POP_FILE)
+    df_enum          = pd.read_csv(ENUMERATION_FILE)
+    df_ie            = pd.read_csv(IE_FILE)
+    df_mda           = pd.read_csv(MDA_FILE)
+    df_world_pop     = pd.read_csv(WORLD_POP_FILE)
+    df_immunisation  = pd.read_csv(IMMUNISATION)
 
-    df_enum['source_type']      = 'Enumeration'
-    df_ie['source_type']        = 'IE (Identify and Enumerate)'
-    df_mda['source_type']       = 'MDA Round'
-    df_world_pop['source_type'] = 'World Pop'
+    # ── Add source labels ─────────────────────────────────────────────────────
+    df_enum['source_type']          = 'Enumeration'
+    df_ie['source_type']            = 'IE (Identify and Enumerate)'
+    df_mda['source_type']           = 'MDA Round'
+    df_world_pop['source_type']     = 'World Pop'
+    df_immunisation['source_type']  = 'Immunisation'
 
-    for df in [df_enum, df_ie, df_mda, df_world_pop]:
+    # ── Normalize columns ─────────────────────────────────────────────────────
+    for df in [df_enum, df_ie, df_mda, df_world_pop, df_immunisation]:
         if 'state' in df.columns:
             df['state'] = df['state'].str.title()
         if 'local_government_area' in df.columns:
             df['local_government_area'] = df['local_government_area'].apply(normalize_lga)
 
-    df_combined = pd.concat([df_enum, df_ie, df_mda, df_world_pop], ignore_index=True)
-    return df_enum, df_ie, df_mda, df_world_pop, df_combined
+    # ── Combine all datasets ──────────────────────────────────────────────────
+    df_combined = pd.concat(
+        [df_enum, df_ie, df_mda, df_world_pop, df_immunisation],
+        ignore_index=True
+    )
+
+    return df_enum, df_ie, df_mda, df_world_pop, df_immunisation, df_combined
 
 try:
-    df_enum, df_ie, df_mda, df_world_pop, df_combined = load_data()
+    df_enum, df_ie, df_mda, df_world_pop, df_immunisation, df_combined = load_data()
 except Exception as e:
     st.error(f"Error loading datasets: {e}")
     st.stop()
@@ -191,11 +202,10 @@ st.markdown("""
 # ── CHATBOT ───────────────────────────────────────────────────────────────────
 with st.container():
     st.markdown('<div class="chat-header"><h3>💬 Ask Your Data Questions</h3></div>', unsafe_allow_html=True)
-    
+
     #grok_key = os.getenv("GROK_API_KEY")
     grok_key = st.secrets["GROK_API_KEY"]
 
-    
     if not grok_key:
         st.warning("⚠️ Chatbot disabled — add your GROK_API_KEY to the .env file.")
     elif not has_langchain:
@@ -223,13 +233,14 @@ with st.container():
                 )
                 agent = create_pandas_dataframe_agent(
                     llm,
-                    [df_enum, df_ie, df_mda, df_world_pop],
+                    [df_enum, df_ie, df_mda, df_world_pop, df_immunisation],
                     verbose=True,
                     allow_dangerous_code=True,
                     handle_parsing_errors=True,
                     prefix=(
-                        "You are analyzing four pandas dataframes. "
-                        "df1 is Enumeration data, df2 is IE data, df3 is MDA Round, df4 is World Pop. "
+                        "You are analyzing five pandas dataframes. "
+                        "df1 is Enumeration data, df2 is IE data, df3 is MDA Round, "
+                        "df4 is World Pop, df5 is Immunisation. "
                         "They share similar columns."
                     ),
                 )
@@ -255,19 +266,27 @@ with st.container():
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── KEY METRICS ───────────────────────────────────────────────────────────────
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
+
 with col1:
     st.markdown('<p class="metric-section-label">Enumeration</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_enum['state'].nunique())
+
 with col2:
     st.markdown('<p class="metric-section-label">IE Dataset</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_ie['state'].nunique())
+
 with col3:
     st.markdown('<p class="metric-section-label">Current MDA Round</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_mda['state'].nunique())
+
 with col4:
     st.markdown('<p class="metric-section-label">World Pop</p>', unsafe_allow_html=True)
     st.metric("States Covered", df_world_pop['state'].nunique())
+
+with col5:
+    st.markdown('<p class="metric-section-label">Immunisation</p>', unsafe_allow_html=True)
+    st.metric("States Covered", df_immunisation['state'].nunique())
 
 st.divider()
 
@@ -414,17 +433,20 @@ def prettify_df(df: pd.DataFrame) -> pd.DataFrame:
         "state": "State"
     }, inplace=True, errors="ignore")
 
+    # ✅ FORCE STATE TO UPPERCASE
+    if "State" in display.columns:
+        display["State"] = display["State"].astype(str).str.upper()
+
     # Format numbers with commas
     for col in display.columns:
         if col not in ["State", "LGA", "Round"]:
             display[col] = display[col].apply(
-                lambda x: f"{int(x):,}" if pd.notna(x) and str(x).replace(",", "").isdigit() else x
+                lambda x: (
+                "NA" if pd.isna(x)
+                else f"{int(round(float(x))):,}"
             )
-    
-    # ✅ FORCE STATE TO UPPERCASE
-    if "State" in display.columns:
-        display["State"] = display["State"].astype(str).str.upper()
-        
+        )
+
     # ✅ FIX: Force Round to whole number
     if "Round" in display.columns:
         display["Round"] = display["Round"].apply(
@@ -501,7 +523,8 @@ def build_comparison_table(df):
         "Enumeration",
         "IE (Identify and Enumerate)",
         "World Pop",
-        "MDA Round"
+        "MDA Round",
+        "Immunisation"
     ]
 
     for col in expected_cols:
@@ -534,10 +557,11 @@ def build_comparison_table(df):
         "Enumeration",
         "IE (Identify and Enumerate)",
         "World Pop",
-        "MDA Round"
+        "MDA Round",
+        "Immunisation"
     ]
 
-    pivot[numeric_cols] = pivot[numeric_cols].fillna(0)
+    pivot[numeric_cols] = pivot[numeric_cols].astype("Float64")
 
     # ── STATE TOTAL ROW ───────────────────────────────────────────────────────
     state_totals = (
@@ -560,6 +584,7 @@ def build_comparison_table(df):
             "Enumeration",
             "IE (Identify and Enumerate)",
             "World Pop",
+            "Immunisation",
             "MDA Round",
             "Round"
         ]
@@ -601,3 +626,4 @@ if show_data:
         use_container_width=True,
         hide_index=True
     )
+
