@@ -1,0 +1,242 @@
+state,local_government_area,1_59m,round
+Adamawa,Demsa,59894,1
+Adamawa,Fufore,75465,1
+Adamawa,Ganye,50873,1
+Adamawa,Girei,45686,1
+Adamawa,Gombi,48636,1
+Adamawa,Guyuk,58862,1
+Adamawa,Hong,46750,1
+Adamawa,Jada,52716,1
+Adamawa,Lamurde,31831,1
+Adamawa,Madagali,55945,1
+Adamawa,Maiha,40695,1
+Adamawa,Mayo-Belwa,93535,1
+Adamawa,Michika,45984,1
+Adamawa,Mubi North,38841,1
+Adamawa,Mubi South,50615,1
+Adamawa,Numan,36716,1
+Adamawa,Shelleng,50898,1
+Adamawa,Song,83227,1
+Adamawa,Toungo,31101,1
+Adamawa,Yola North,38447,1
+Adamawa,Yola South,116690,1
+Bauchi,Alkaleri,55306,2
+Bauchi,Bauchi,157321,2
+Bauchi,Bogoro,26064,2
+Bauchi,Damban,33458,2
+Bauchi,Darazo,66959,2
+Bauchi,Dass,27493,2
+Bauchi,Gamawa,97939,2
+Bauchi,Ganjuwa,74181,2
+Bauchi,Giade,41669,2
+Bauchi,Itas/Gadau,76434,2
+Bauchi,Jama'are,37355,2
+Bauchi,Katagum,75782,2
+Bauchi,Kirfi,30220,2
+Bauchi,Misau,60182,2
+Bauchi,Ningi,83864,2
+Bauchi,Shira,56325,2
+Bauchi,Tafawa-Balewa,80016,2
+Bauchi,Toro,89658,2
+Bauchi,Warji,28852,2
+Bauchi,Zaki,49267,2
+Gombe,Akko,146481,1
+Gombe,Balanga,59999,1
+Gombe,Billiri,49797,1
+Gombe,Dukku,63205,1
+Gombe,Funakaye,60861,1
+Gombe,Gombe,92109,1
+Gombe,Kaltungo,45330,1
+Gombe,Kwami,47560,1
+Gombe,Nafada,47928,1
+Gombe,Shomgom,36805,1
+Gombe,Yamaltu/Deba,84197,1
+Jigawa,Auyo,27171,2
+Jigawa,Babura,58571,2
+Jigawa,Birnin Kudu,97360,2
+Jigawa,Birniwa,0,2
+Jigawa,Buji,32031,2
+Jigawa,Dutse,65694,2
+Jigawa,Gagarawa,27825,2
+Jigawa,Garki,40982,2
+Jigawa,Gumel,37680,2
+Jigawa,Guri,27071,2
+Jigawa,Gwaram,71503,2
+Jigawa,Gwiwa,28565,2
+Jigawa,Hadejia,23675,2
+Jigawa,Jahun,61844,2
+Jigawa,Kafin Hausa,63820,2
+Jigawa,Kaugama,34944,2
+Jigawa,Kazaure,39298,2
+Jigawa,Kiri Kasamma,44719,2
+Jigawa,Kiyawa,48929,2
+Jigawa,Maigatari,37226,2
+Jigawa,Malam Madori,39468,2
+Jigawa,Miga,35288,2
+Jigawa,Ringim,44136,2
+Jigawa,Roni,21901,2
+Jigawa,Sule Tankarkar,38741,2
+Jigawa,Taura,33051,2
+Jigawa,Yankwashi,22177,2
+Kaduna,Birnin Gwari,76753,2
+Kaduna,Chikun,157008,2
+Kaduna,Giwa,123038,2
+Kaduna,Igabi,176406,2
+Kaduna,Ikara,94525,2
+Kaduna,Jaba,74644,2
+Kaduna,Jema'A,103776,2
+Kaduna,Kachia,100797,2
+Kaduna,Kaduna North,143623,2
+Kaduna,Kaduna South,125688,2
+Kaduna,Kagarko,81613,2
+Kaduna,Kajuru,44886,2
+Kaduna,Kaura,78465,2
+Kaduna,Kauru,83303,2
+Kaduna,Kubau,172769,2
+Kaduna,Kudan,72948,2
+Kaduna,Lere,151431,2
+Kaduna,Makarfi,77781,2
+Kaduna,Sabon Gari,120502,2
+Kaduna,Sanga,53870,2
+Kaduna,Soba,195808,2
+Kaduna,Zangon Kataf,118746,2
+Kaduna,Zaria,265871,2
+Kano,Ajingi,68258,2
+Kano,Albasu,55205,2
+Kano,Bagwai,0,2
+Kano,Bebeji,95124,2
+Kano,Bichi,103793,2
+Kano,Bunkure,78405,2
+Kano,Dala,111612,2
+Kano,Dambatta,0,2
+Kano,Dawakin Kudu,0,2
+Kano,Dawakin Tofa,90681,2
+Kano,Doguwa,NA,2
+Kano,Fagge,0,2
+Kano,Gabasawa,67212,2
+Kano,Garko,0,2
+Kano,Garum Mallam,NA,2
+Kano,Gaya,58836,2
+Kano,Gezawa,0,2
+Kano,Gwale,0,2
+Kano,Gwarzo,0,2
+Kano,Kabo,64617,2
+Kano,Kano Municipal,96261,2
+Kano,Karaye,65479,2
+Kano,Kibiya,0,2
+Kano,Kiru,79839,2
+Kano,Kumbotso,0,2
+Kano,Kunchi,42923,2
+Kano,Kura,38641,2
+Kano,Madobi,63584,2
+Kano,Makoda,0,2
+Kano,Minjibir,84609,2
+Kano,Nassarawa,0,2
+Kano,Rano,0,2
+Kano,Rimin Gado,52595,2
+Kano,Rogo,106846,2
+Kano,Shanono,61580,2
+Kano,Sumaila,0,2
+Kano,Takai,82326,2
+Kano,Tarauni,75633,2
+Kano,Tofa,42570,2
+Kano,Tsanyawa,0,2
+Kano,Tudun Wada,87113,2
+Kano,Ungogo,252480,2
+Kano,Warawa,56074,2
+Kano,Wudil,65596,2
+Katsina,Bakori,71784,2
+Katsina,Batagarawa,40388,2
+Katsina,Batsari,50957,2
+Katsina,Baure,65008,2
+Katsina,Bindawa,42937,2
+Katsina,Charanchi,62432,2
+Katsina,Dan Musa,62407,2
+Katsina,Dandume,61728,2
+Katsina,Danja,46651,2
+Katsina,Daura,61746,2
+Katsina,Dutsi,33219,2
+Katsina,Dutsin Ma,50127,2
+Katsina,Faskari,47970,2
+Katsina,Funtua,122239,2
+Katsina,Ingawa,63481,2
+Katsina,Jibia,0,2
+Katsina,Kafur,69117,2
+Katsina,Kaita,45309,2
+Katsina,Kankara,55559,2
+Katsina,Kankia,58808,2
+Katsina,Katsina,82502,2
+Katsina,Kurfi,48283,2
+Katsina,Kusada,34704,2
+Katsina,Mai'Adua,40564,2
+Katsina,Malumfashi,66155,2
+Katsina,Mani,74794,2
+Katsina,Mashi,0,2
+Katsina,Matazu,22414,2
+Katsina,Musawa,44773,2
+Katsina,Rimi,54359,2
+Katsina,Sabuwa,46598,2
+Katsina,Safana,48663,2
+Katsina,Sandamu,48375,2
+Katsina,Zango,52531,2
+Kebbi,Aleiro,23737,2
+Kebbi,Arewa Dandi,59929,2
+Kebbi,Argungu,62506,2
+Kebbi,Augie,0,2
+Kebbi,Bagudo,102846,2
+Kebbi,Birnin Kebbi,92735,2
+Kebbi,Bunza,60854,2
+Kebbi,Dandi,46088,2
+Kebbi,Fakai,50893,2
+Kebbi,Gwandu,50931,2
+Kebbi,Jega,66508,2
+Kebbi,Kalgo,32916,2
+Kebbi,Koko/Besse,53854,2
+Kebbi,Maiyama,64070,2
+Kebbi,Ngaski,48731,2
+Kebbi,Sakaba,55297,2
+Kebbi,Shanga,57787,2
+Kebbi,Suru,53447,2
+Kebbi,Wasagu/Danko,NA,2
+Kebbi,Yauri,33108,2
+Kebbi,Zuru,60864,2
+Sokoto,Binji,49079,4
+Sokoto,Bodinga,0,4
+Sokoto,Dange-Shuni,55627,4
+Sokoto,Gada,73168,4
+Sokoto,Goronyo,72969,4
+Sokoto,Gudu,21214,4
+Sokoto,Gwadabawa,76968,4
+Sokoto,Illela,48091,4
+Sokoto,Isa,49282,4
+Sokoto,Kebbe,64265,4
+Sokoto,Kware,68441,4
+Sokoto,Rabah,44418,4
+Sokoto,Sabon Birni,0,4
+Sokoto,Shagari,46760,4
+Sokoto,Silame,0,4
+Sokoto,Sokoto North,52886,4
+Sokoto,Sokoto South,61056,4
+Sokoto,Tambuwal,83207,4
+Sokoto,Tangaza,38862,4
+Sokoto,Tureta,33274,4
+Sokoto,Wamakko,57600,4
+Sokoto,Wurno,44054,4
+Sokoto,Yabo,38293,4
+Yobe,Bade,79696,1
+Yobe,Bursari,0,1
+Yobe,Damaturu,0,1
+Yobe,Fika,96969,1
+Yobe,Fune,104111,1
+Yobe,Geidam,65622,1
+Yobe,Gujba,43225,1
+Yobe,Gulani,71396,1
+Yobe,Jakusko,0,1
+Yobe,Karasuwa,0,1
+Yobe,Machina,0,1
+Yobe,Nangere,62299,1
+Yobe,Nguru,46535,1
+Yobe,Potiskum,207295,1
+Yobe,Tarmuwa,30591,1
+Yobe,Yunusari,0,1
+Yobe,Yusufari,0,1
