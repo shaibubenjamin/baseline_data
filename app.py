@@ -26,6 +26,9 @@ st.set_page_config(
 )
 
 # ── Premium CSS ───────────────────────────────────────────────────────────────
+
+
+
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
@@ -121,6 +124,7 @@ st.markdown("""
     .stSelectbox label { font-weight: 600; color: #374151; }
 
     hr { border: none; border-top: 1px solid #e8edf5; margin: 1.5rem 0; }
+    
 
     .chat-header {
         background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
@@ -245,14 +249,16 @@ st.markdown("""
     }
 
     /* ── REMOVE THE "expand_more" MATERIAL-SYMBOL SUFFIX ON POPOVER BUTTON ─ */
-    /* Streamlit renders the icon as a <span> or <i> with a dynamic
-       st-emotion-cache-* class (not a stable name). The label text, on the
-       other hand, is always a <p> inside stMarkdownContainer. So we can
-       safely hide ALL span/i/svg elements inside the popover trigger
-       button — the <p> label stays fully visible. */
-    [data-testid="stPopover"] button span,
-    [data-testid="stPopover"] button i,
-    [data-testid="stPopover"] button svg {
+    /* Streamlit's popover trigger includes a Material Symbols <span>/<i>
+       that renders the ligature text "expand_more". We hide ONLY those
+       icon elements — the label and button itself stay fully visible. */
+    [data-testid="stPopover"] button [class*="material-symbols" i],
+    [data-testid="stPopover"] button [class*="material-icons" i],
+    [data-testid="stPopover"] button [class*="MaterialSymbols" i],
+    [data-testid="stPopover"] button > span[class*="icon" i],
+    [data-testid="stPopover"] button > i[class*="icon" i],
+    [data-testid="stPopover"] button > i.material-symbols-rounded,
+    [data-testid="stPopover"] button > span.material-symbols-rounded {
         display: none !important;
         visibility: hidden !important;
         width: 0 !important;
@@ -260,17 +266,7 @@ st.markdown("""
         font-size: 0 !important;
         color: transparent !important;
     }
-    /* Keep the markdown container + its <p> (our label) visible */
-    [data-testid="stPopover"] button [data-testid="stMarkdownContainer"],
-    [data-testid="stPopover"] button [data-testid="stMarkdownContainer"] p {
-        display: block !important;
-        visibility: visible !important;
-        font-size: 0.9rem !important;
-        color: #ffffff !important;
-        width: auto !important;
-        height: auto !important;
-        margin: 0 !important;
-    }
+            
 
 </style>
 """, unsafe_allow_html=True)
@@ -358,6 +354,7 @@ with chat_container:
     #grok_key = os.getenv("GROK_API_KEY")
     grok_key = st.secrets["GROK_API_KEY"]
     
+
     if not grok_key:
         st.warning("⚠️ Chatbot disabled — add your GROK_API_KEY to the .env file.")
     elif not has_langchain:
@@ -776,3 +773,5 @@ if show_data:
         use_container_width=True,
         hide_index=True
     )
+
+
