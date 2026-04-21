@@ -190,7 +190,7 @@ except Exception as e:
 # ── HEADER ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="dashboard-header">
-  <p class="title-main">📊 Baseline <span class="title-accent">Comparison</span> Portal</p>
+  <p class="title-main">📊 Denominator <span class="title-accent"> Assessment </span> Portal</p>
   <p class="subtitle-text">
     A unified, intelligent view of population targets <b>(1–59 months)</b> across
     <b>Enumeration</b>, <b>IE (Identify & Enumerate)</b>, <b>MDA Round</b>, and <b>World Pop</b> datasets
