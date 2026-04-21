@@ -18,12 +18,17 @@ except ImportError:
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
-st.set_page_config(page_title="Denominator Assessment", page_icon="📊", layout="wide")
+st.set_page_config(
+    page_title="Baseline Comparison Dashboard",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
 # ── Premium CSS ───────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
 
     html, body, [class*="css"], * { font-family: 'DM Sans', sans-serif !important; }
 
@@ -39,11 +44,12 @@ st.markdown("""
 
     .dashboard-header {
         background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f2d5c 100%);
-        border-radius: 20px;
-        padding: 40px 48px;
-        margin-bottom: 2rem;
+        border-radius: 16px;
+        padding: 22px 32px;
+        margin-bottom: 1.25rem;
         position: relative;
         overflow: hidden;
+        text-align: center;
     }
     .dashboard-header::before {
         content: '';
@@ -61,17 +67,22 @@ st.markdown("""
         background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 65%);
         border-radius: 50%;
     }
+    .dashboard-header * { text-align: center !important; }
     .title-main {
         font-family: 'Syne', sans-serif !important;
-        font-size: 2.8rem; font-weight: 800; color: #ffffff;
-        letter-spacing: -0.02em; margin: 0 0 6px 0; line-height: 1.1;
+        font-size: 1.75rem !important; font-weight: 800 !important; color: #ffffff !important;
+        letter-spacing: -0.01em !important; margin: 0 auto 6px auto !important; line-height: 1.15 !important;
+        text-align: center !important;
+        display: block !important;
     }
-    .title-accent { color: #38bdf8; }
+    .title-accent { color: #38bdf8 !important; }
     .subtitle-text {
-        color: #94a3b8; font-size: 1.05rem; font-weight: 400;
-        margin: 0; max-width: 700px; line-height: 1.6;
+        color: #e2e8f0 !important; font-size: 0.92rem !important; font-weight: 600 !important;
+        margin: 0 auto !important; max-width: 900px !important; line-height: 1.5 !important;
+        text-align: center !important;
+        display: block !important;
     }
-    .subtitle-text b { color: #cbd5e1; font-weight: 600; }
+    .subtitle-text b { color: #ffffff !important; font-weight: 800 !important; }
 
     [data-testid="stMetric"] {
         background: #ffffff; border: 1px solid #e8edf5;
@@ -126,6 +137,141 @@ st.markdown("""
         font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
         letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 0.5rem;
     }
+
+    /* ── FLOATING CHAT POPOVER (custom container #floating-chat) ─────────── */
+    /* Hide the default Streamlit sidebar entirely — chat lives in a popover */
+    section[data-testid="stSidebar"] { display: none !important; }
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+
+    /* Pulse animation for the floating chat button */
+    @keyframes chatPulse {
+        0%   { box-shadow: 0 10px 28px rgba(37,99,235,0.5), 0 0 0 0 rgba(37,99,235,0.55); }
+        70%  { box-shadow: 0 10px 28px rgba(37,99,235,0.5), 0 0 0 16px rgba(37,99,235,0); }
+        100% { box-shadow: 0 10px 28px rgba(37,99,235,0.5), 0 0 0 0 rgba(37,99,235,0); }
+    }
+
+    /* Float the chat popover at bottom-right
+       Targets the popover widget when it's anywhere on the page */
+    [data-testid="stPopover"] {
+        position: fixed !important;
+        bottom: 22px !important;
+        right: 22px !important;
+        z-index: 99999 !important;
+        width: auto !important;
+    }
+    /* Style the popover trigger button to look like a chat widget button */
+    [data-testid="stPopover"] > div > button,
+    [data-testid="stPopover"] button[kind="secondary"],
+    [data-testid="stPopover"] button {
+        background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 32px !important;
+        padding: 12px 20px !important;
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        box-shadow: 0 10px 28px rgba(37,99,235,0.5) !important;
+        animation: chatPulse 1.8s ease-in-out infinite !important;
+        transition: transform 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+    [data-testid="stPopover"] button:hover {
+        transform: scale(1.05) !important;
+        animation-play-state: paused !important;
+    }
+
+    /* Shrink fonts inside the opened popover */
+    [data-baseweb="popover"] .chat-header {
+        padding: 10px 14px !important;
+        margin-bottom: 8px !important;
+        border-radius: 10px !important;
+    }
+    [data-baseweb="popover"] .chat-header h3 {
+        font-size: 0.9rem !important;
+    }
+    [data-baseweb="popover"] [data-testid="stChatMessage"] {
+        padding: 6px 8px !important;
+        font-size: 0.8rem !important;
+    }
+    [data-baseweb="popover"] [data-testid="stChatMessage"] p {
+        font-size: 0.8rem !important;
+        line-height: 1.35 !important;
+        margin: 0 !important;
+    }
+    [data-baseweb="popover"] [data-testid="stChatInput"] textarea {
+        font-size: 0.8rem !important;
+        min-height: 34px !important;
+    }
+    [data-baseweb="popover"] .stAlert {
+        font-size: 0.8rem !important;
+        padding: 8px 10px !important;
+    }
+
+    /* ── HIDE STREAMLIT'S "EXPAND / LESS / FULLSCREEN" TOOLBAR CONTROLS ──── */
+    [data-testid="StyledFullScreenButton"],
+    [data-testid="stElementToolbar"],
+    [data-testid="stElementToolbarButton"],
+    [data-testid="stPopoverFullScreenButton"],
+    [data-testid="stFullScreenFrame"] > button,
+    button[title="View fullscreen"],
+    button[title="Fullscreen"],
+    button[title="Exit fullscreen"],
+    button[title="Expand"],
+    button[title="Collapse"],
+    button[aria-label="Fullscreen"],
+    button[aria-label="View fullscreen"],
+    button[aria-label*="xpand"],
+    button[aria-label*="ollapse"] {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    [data-testid="stPopover"] [data-testid="stElementToolbar"],
+    [data-testid="stPopover"] [data-testid="StyledFullScreenButton"],
+    [data-baseweb="popover"] [data-testid="stElementToolbar"],
+    [data-baseweb="popover"] [data-testid="StyledFullScreenButton"],
+    [data-baseweb="popover"] button[title*="creen" i],
+    [data-baseweb="popover"] button[title*="xpand" i] {
+        display: none !important;
+    }
+
+    /* ── REMOVE THE "expand_more" MATERIAL-SYMBOL SUFFIX ON POPOVER BUTTON ─ */
+    /* Streamlit renders the icon as a <span> or <i> with a dynamic
+       st-emotion-cache-* class (not a stable name). The label text, on the
+       other hand, is always a <p> inside stMarkdownContainer. So we can
+       safely hide ALL span/i/svg elements inside the popover trigger
+       button — the <p> label stays fully visible. */
+    [data-testid="stPopover"] button span,
+    [data-testid="stPopover"] button i,
+    [data-testid="stPopover"] button svg {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        font-size: 0 !important;
+        color: transparent !important;
+    }
+    /* Keep the markdown container + its <p> (our label) visible */
+    [data-testid="stPopover"] button [data-testid="stMarkdownContainer"],
+    [data-testid="stPopover"] button [data-testid="stMarkdownContainer"] p {
+        display: block !important;
+        visibility: visible !important;
+        font-size: 0.9rem !important;
+        color: #ffffff !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -190,7 +336,7 @@ except Exception as e:
 # ── HEADER ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="dashboard-header">
-  <p class="title-main">📊 Denominator <span class="title-accent"> Assessment </span> Portal</p>
+  <p class="title-main">📊 Denominator <span class="title-accent">Assessment</span> Portal</p>
   <p class="subtitle-text">
     A unified, intelligent view of population targets <b>(1–59 months)</b> across
     <b>Enumeration</b>, <b>IE (Identify & Enumerate)</b>, <b>MDA Round</b>, and <b>World Pop</b> datasets
@@ -199,13 +345,19 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── CHATBOT ───────────────────────────────────────────────────────────────────
-with st.container():
+# ── FLOATING CHATBOT (popover with fallback to expander) ─────────────────────
+# Use st.popover if available (Streamlit >= 1.32); fall back to st.expander
+if hasattr(st, "popover"):
+    chat_container = st.popover("💬  Ask your data a question", use_container_width=False)
+else:
+    chat_container = st.expander("💬  Ask your data a question", expanded=False)
+
+with chat_container:
     st.markdown('<div class="chat-header"><h3>💬 Ask Your Data Questions</h3></div>', unsafe_allow_html=True)
 
     #grok_key = os.getenv("GROK_API_KEY")
     grok_key = st.secrets["GROK_API_KEY"]
-
+    
     if not grok_key:
         st.warning("⚠️ Chatbot disabled — add your GROK_API_KEY to the .env file.")
     elif not has_langchain:
@@ -262,8 +414,6 @@ with st.container():
 
         except Exception as e:
             st.error(f"Error starting chat agent: {e}")
-
-st.markdown("<br>", unsafe_allow_html=True)
 
 # ── KEY METRICS ───────────────────────────────────────────────────────────────
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -626,4 +776,3 @@ if show_data:
         use_container_width=True,
         hide_index=True
     )
-
