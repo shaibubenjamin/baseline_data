@@ -18,7 +18,7 @@ except ImportError:
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
-st.set_page_config(page_title="Baseline Comparison Dashboard", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Denominator Assessment", page_icon="📊", layout="wide")
 
 # ── Premium CSS ───────────────────────────────────────────────────────────────
 st.markdown("""
