@@ -351,12 +351,10 @@ else:
 with chat_container:
     st.markdown('<div class="chat-header"><h3>💬 Ask Your Data Questions</h3></div>', unsafe_allow_html=True)
 
-    #grok_key = os.getenv("GROK_API_KEY")
-    grok_key = st.secrets["GROK_API_KEY"]
-    
+    groq_key = os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY")
 
-    if not grok_key:
-        st.warning("⚠️ Chatbot disabled — add your GROK_API_KEY to the .env file.")
+    if not groq_key:
+        st.warning("⚠️ Chatbot disabled — add your GROQ_API_KEY to the .env file.")
     elif not has_langchain:
         st.error("LangChain packages not found. Run: `pip install langchain langchain-experimental langchain-openai`")
     else:
@@ -376,7 +374,7 @@ with chat_container:
 
                 llm = ChatOpenAI(
                     model="llama-3.3-70b-versatile",
-                    api_key=grok_key,
+                    api_key=groq_key,
                     base_url="https://api.groq.com/openai/v1",
                     temperature=0,
                 )
@@ -387,10 +385,35 @@ with chat_container:
                     allow_dangerous_code=True,
                     handle_parsing_errors=True,
                     prefix=(
-                        "You are analyzing five pandas dataframes. "
-                        "df1 is Enumeration data, df2 is IE data, df3 is MDA Round, "
-                        "df4 is World Pop, df5 is Immunisation. "
-                        "They share similar columns."
+                        "You are a data analyst assistant helping explore population-target "
+                        "datasets for children aged 1–59 months across northern Nigerian states.\n\n"
+                        "You have access to FIVE pandas dataframes, all sharing the columns "
+                        "[state, local_government_area, 1_59m]:\n"
+                        "  • df1 = Enumeration — household enumeration counts for "
+                        "Kaduna, Bauchi, Adamawa, Gombe, Yobe.\n"
+                        "  • df2 = IE (Identify & Enumerate) — IE survey counts for "
+                        "Jigawa, Katsina, Kebbi, Zamfara.\n"
+                        "  • df3 = MDA Round — Mass Drug Administration target population "
+                        "(has an extra `round` column indicating the campaign round number).\n"
+                        "  • df4 = World Pop — 2026 WorldPop modelled population projection.\n"
+                        "  • df5 = Immunisation — immunisation programme target population.\n\n"
+                        "Column meanings:\n"
+                        "  • `state` — Nigerian state name, Title Case (e.g. 'Kaduna').\n"
+                        "  • `local_government_area` — LGA name, UPPERCASE, hyphen-normalised "
+                        "(e.g. 'ZANGO-KATAF').\n"
+                        "  • `1_59m` — target population aged 1 to 59 months (integer).\n\n"
+                        "Guidelines when answering:\n"
+                        "  1. Always normalise user input: Title-case state names, UPPERCASE LGA "
+                        "names before filtering.\n"
+                        "  2. When the user asks about 'population', 'target', 'children', or "
+                        "'denominator', they mean the `1_59m` column.\n"
+                        "  3. If a question is dataset-specific (e.g. 'in WorldPop'), use only "
+                        "that dataframe; otherwise compare across all five.\n"
+                        "  4. Format large numbers with thousands separators in your final "
+                        "answer (e.g. 1,234,567).\n"
+                        "  5. Be concise — give the answer first, then a one-line explanation.\n"
+                        "  6. If data is missing for a state/LGA in a dataset, say so explicitly "
+                        "rather than returning 0."
                     ),
                 )
 
@@ -773,5 +796,3 @@ if show_data:
         use_container_width=True,
         hide_index=True
     )
-
-
